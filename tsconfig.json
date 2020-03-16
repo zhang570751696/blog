@@ -1,3 +1,4 @@
+// https://www.tslang.cn/docs/handbook/compiler-options.html
 {
   "compilerOptions": {
     "outDir": "./dist/",

@@ -2,16 +2,18 @@ const path = require("path");
 const HTMLPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
-//const uglify = require('uglifyjs-webpack-plugin');
-const isDev = process.env.NODE_ENV == 'development';
 
 const config = {
     target: "web",
-    entry: path.join(__dirname, "src/index.tsx"),
+    entry: path.join(__dirname, "..", "src", "index.tsx"),
     output: {
         filename: "app.bundle.js",
         path: path.join(__dirname, 'dist')
     },
+
+    mode: "development",
+    devtool: '#cheap-module-eval-source-map',
+
     // devtool: "source-map",
     resolve: {
         extensions: ['.ts', '.tsx', '.js']
@@ -20,7 +22,7 @@ const config = {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: "ts-loader"
+                loader: ["ts-loader"]
             },
             {
                 enforce: "pre",
@@ -39,7 +41,7 @@ const config = {
 
     plugins: [
         new HTMLPlugin({
-            template: "./src/index.html",
+            template: path.join(__dirname, "..", "src", "index.html"),
             minify: true,
             hash: true
         }),
@@ -47,21 +49,24 @@ const config = {
         //new uglify(),  //压缩JS
         new webpack.DefinePlugin({
             'process.env': {
-                NODE_ENV: isDev ? '"development"' : '"production"'
+                NODE_ENV: '"development"'
             }
         }),
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: "jquery",
+            "window.jQuery": "jquery"
+        }),
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoEmitOnErrorsPlugin()
     ],
     optimization: {
         splitChunks: {
             chunks: 'all',
         },
     },
-};
 
-if (isDev) {
-    config.mode = "development";
-    config.devtool = '#cheap-module-eval-source-map';
-    config.devServer = {
+    devServer: {
         port: 8000,  //使用的端口
         host: '0.0.0.0',  //host地址
         overlay: {
@@ -70,14 +75,8 @@ if (isDev) {
         hot: true,  //热更新
         inline: true,
         contentBase: path.join(__dirname, 'dist'), //发布目录
-    };
+    }
+};
 
-    config.plugins.push(
-        new webpack.HotModuleReplacementPlugin(),
-        new webpack.NoEmitOnErrorsPlugin()
-    );
-} else {
-    config.mode = "production";
-}
 
 module.exports = config;
